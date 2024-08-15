@@ -61,16 +61,13 @@ const QuizApp = () => {
   const [totalPlays, setTotalPlays] = useState(0);
 
   useEffect(() => {
-    console.log('QuizApp mounted');
     fetchStats();
   }, []);
 
   const fetchStats = async () => {
-    console.log('Fetching stats...');
     try {
       const response = await fetch('/.netlify/functions/getStats');
       const stats = await response.json();
-      console.log('Stats fetched:', stats);
       setAverageScore(stats.averageScore);
       setTotalPlays(stats.totalPlays);
     } catch (error) {
@@ -78,13 +75,76 @@ const QuizApp = () => {
     }
   };
 
-  // ... rest of your component code ...
+  const handleAnswerClick = (selectedOption) => {
+    setSelectedAnswer(selectedOption);
+    if (selectedOption === questions[currentQuestion].correctAnswer) {
+      setScore(score + 1);
+    }
+  };
 
-  console.log('Rendering QuizApp', { currentQuestion, score, showResult, selectedAnswer, averageScore, totalPlays });
+  const handleNextQuestion = () => {
+    setSelectedAnswer(null);
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else {
+      setShowResult(true);
+      updateStats();
+    }
+  };
+
+  const updateStats = async () => {
+    try {
+      const response = await fetch('/.netlify/functions/updateStats', {
+        method: 'POST',
+        body: JSON.stringify({ score }),
+      });
+      const updatedStats = await response.json();
+      setAverageScore(updatedStats.averageScore);
+      setTotalPlays(updatedStats.totalPlays);
+    } catch (error) {
+      console.error('Error updating stats:', error);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      {/* ... your JSX ... */}
+      <h1 className="text-2xl font-bold mb-4">Whitetail Deer Hunting Quiz</h1>
+      <div className="mb-4">
+        <p>Average Score: {averageScore.toFixed(1)} / {questions.length}</p>
+        <p>Total Plays: {totalPlays}</p>
+      </div>
+      {!showResult ? (
+        <div>
+          <h2 className="text-xl mb-2">Question {currentQuestion + 1} of {questions.length}</h2>
+          <p className="mb-4">{questions[currentQuestion].question}</p>
+          <div className="space-y-2">
+            {questions[currentQuestion].options.map((option, index) => (
+              <button
+                key={index}
+                className={`w-full p-2 text-left border ${
+                  selectedAnswer === index ? 'bg-blue-200' : 'bg-white'
+                }`}
+                onClick={() => handleAnswerClick(index)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {selectedAnswer !== null && (
+            <button
+              className="mt-4 bg-blue-500 text-white p-2 rounded"
+              onClick={handleNextQuestion}
+            >
+              {currentQuestion < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <div>
+          <h2 className="text-xl mb-2">Quiz Completed!</h2>
+          <p>Your score: {score} out of {questions.length}</p>
+        </div>
+      )}
     </div>
   );
 };
