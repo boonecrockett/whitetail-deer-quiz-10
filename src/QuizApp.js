@@ -52,7 +52,6 @@ const questions = [
     correctAnswer: 2
   }
 ];
-
 const QuizApp = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
@@ -62,13 +61,16 @@ const QuizApp = () => {
   const [totalPlays, setTotalPlays] = useState(0);
 
   useEffect(() => {
+    console.log('QuizApp mounted');
     fetchStats();
   }, []);
 
   const fetchStats = async () => {
+    console.log('Fetching stats...');
     try {
       const response = await fetch('/.netlify/functions/getStats');
       const stats = await response.json();
+      console.log('Stats fetched:', stats);
       setAverageScore(stats.averageScore);
       setTotalPlays(stats.totalPlays);
     } catch (error) {
@@ -76,82 +78,13 @@ const QuizApp = () => {
     }
   };
 
-  const handleAnswerClick = (selectedOption) => {
-    setSelectedAnswer(selectedOption);
-    if (selectedOption === questions[currentQuestion].correctAnswer) {
-      setScore(score + 1);
-    }
-  };
+  // ... rest of your component code ...
 
-  const handleNextQuestion = () => {
-    setSelectedAnswer(null);
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      handleQuizComplete();
-    }
-  };
-
-  const handleQuizComplete = async () => {
-    setShowResult(true);
-    try {
-      const response = await fetch('/.netlify/functions/updateStats', {
-        method: 'POST',
-        body: JSON.stringify({ score }),
-      });
-      const updatedStats = await response.json();
-      setAverageScore(updatedStats.averageScore);
-      setTotalPlays(updatedStats.totalPlays);
-    } catch (error) {
-      console.error('Error updating stats:', error);
-    }
-  };
+  console.log('Rendering QuizApp', { currentQuestion, score, showResult, selectedAnswer, averageScore, totalPlays });
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Whitetail Deer Hunting Quiz</h1>
-      <div className="mb-4">
-        <p>Average Score: {averageScore.toFixed(1)} / 10</p>
-        <p>Total Plays: {totalPlays}</p>
-      </div>
-      {!showResult ? (
-        <div>
-          <h2 className="text-xl mb-2">Question {currentQuestion + 1} of {questions.length}</h2>
-          <p className="mb-4">{questions[currentQuestion].question}</p>
-          <div className="space-y-2">
-            {questions[currentQuestion].options.map((option, index) => (
-              <button
-                key={index}
-                className={`w-full p-2 text-left border ${
-                  selectedAnswer === index ? 'bg-blue-200' : 'bg-white'
-                }`}
-                onClick={() => handleAnswerClick(index)}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-          {selectedAnswer !== null && (
-            <div className="mt-4">
-              <p className={selectedAnswer === questions[currentQuestion].correctAnswer ? 'text-green-600' : 'text-red-600'}>
-                {selectedAnswer === questions[currentQuestion].correctAnswer ? 'Correct!' : 'Incorrect. The correct answer is:'}
-              </p>
-              <p>{questions[currentQuestion].options[questions[currentQuestion].correctAnswer]}</p>
-              <button
-                className="mt-2 bg-blue-500 text-white p-2 rounded"
-                onClick={handleNextQuestion}
-              >
-                Next Question
-              </button>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div>
-          <h2 className="text-xl mb-2">Quiz Completed!</h2>
-          <p>Your score: {score} out of {questions.length}</p>
-        </div>
-      )}
+      {/* ... your JSX ... */}
     </div>
   );
 };
